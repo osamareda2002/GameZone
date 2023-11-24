@@ -25,7 +25,18 @@
                 return NotFound();
             return View(game);
         }
-        
+        [HttpGet]
+        public IActionResult Create()
+        {
+            CreateGameFormViewModel viewModel = new()
+            {
+                Categories = _categoriesServices.GetSelectLists(),
+                Devices = _devicesServcies.GetSelectLists()
+            };
+
+            return View(viewModel);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateGameFormViewModel model)
@@ -59,6 +70,29 @@
                 CurrentCover = game.Cover,
             };
             return View(viewModel);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditGameFormViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.Categories = _categoriesServices.GetSelectLists();
+                model.Devices = _devicesServcies.GetSelectLists();
+                return View(model);
+            }
+
+            var game = await _gameService.Update(model);
+            if (game is null)
+                return BadRequest();
+
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpDelete]
+        public IActionResult Delete(int id)
+        {
+            var isDeleted = _gameService.Delete(id);
+            return isDeleted ? Ok() : BadRequest();
         }
     }
 }
