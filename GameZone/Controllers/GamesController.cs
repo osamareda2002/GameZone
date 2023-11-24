@@ -18,15 +18,14 @@
             return View(games);
         }
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult Details (int id)
         {
-            CreateGameFormViewModel viewModel = new()
-            {
-                Categories = _categoriesServices.GetSelectLists(),
-                Devices = _devicesServcies.GetSelectLists(),
-            };
-            return View(viewModel);
+            var game = _gameService.GetById(id);
+            if (game is null)
+                return NotFound();
+            return View(game);
         }
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateGameFormViewModel model)
@@ -41,6 +40,25 @@
             await _gameService.Create(model);
 
             return RedirectToAction(nameof(Index));
+        }
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var game = _gameService.GetById(id);
+            if (game is null)
+                return NotFound();
+            EditGameFormViewModel viewModel = new()
+            {
+                Id=id,
+                Name=game.Name,
+                Description=game.Description,
+                CategoryId=game.CategoryId,
+                SelectedDevices = game.Devices.Select(d => d.DeviceId).ToList(),
+                Categories = _categoriesServices.GetSelectLists(),
+                Devices = _devicesServcies.GetSelectLists(),
+                CurrentCover = game.Cover,
+            };
+            return View(viewModel);
         }
     }
 }
